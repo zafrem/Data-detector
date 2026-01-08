@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>PII Detector</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>PII Detector</h1>
+      <div class="status-bar">
+        <span class="status-indicator" id="api-status"></span>
+        <span class="status-text" id="api-status-text">Checking...</span>
+      </div>
+    </header>
+
+    <section class="stats">
+      <div class="stat-card">
+        <div class="stat-number" id="today-count">0</div>
+        <div class="stat-label">Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="week-count">0</div>
+        <div class="stat-label">This Week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="total-count">0</div>
+        <div class="stat-label">Total</div>
+      </div>
+    </section>
+
+    <section class="category-breakdown">
+      <h3>Top Categories</h3>
+      <div id="category-list" class="category-list">
+        <p class="empty-message">No detections yet</p>
+      </div>
+    </section>
+
+    <section class="event-history">
+      <h3>Recent Events</h3>
+      <div class="filters">
+        <input type="text" id="search" placeholder="Search..." class="search-input">
+        <select id="source-filter" class="filter-select">
+          <option value="">All Sources</option>
+          <option value="form">Forms</option>
+          <option value="dom-initial">Page Content</option>
+          <option value="dom-mutation">Page Updates</option>
+          <option value="network">Network</option>
+        </select>
+      </div>
+      <div id="event-list" class="event-list">
+        <p class="empty-message">No events to display</p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <button id="settings-btn" class="btn btn-secondary">Settings</button>
+      <button id="clear-btn" class="btn btn-danger">Clear History</button>
+    </footer>
+  </div>
+
+  <script src="../lib/utils.js"></script>
+  <script src="../lib/storage-manager.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

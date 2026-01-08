@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "PII Detector",
+  "version": "1.0.0",
+  "description": "Detect and monitor personal information (PII) in browser activity using Data-Detector API",
+  "permissions": [
+    "webRequest",
+    "storage",
+    "notifications",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "lib/utils.js",
+        "lib/storage-manager.js",
+        "content/patterns.js",
+        "lib/pattern-matcher.js",
+        "lib/api-client.js",
+        "content/form-monitor.js",
+        "content/dom-scanner.js",
+        "content/content-script.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options/options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

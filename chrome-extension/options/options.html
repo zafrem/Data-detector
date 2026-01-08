@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>PII Detector - Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>PII Detector Settings</h1>
+      <p class="subtitle">Configure detection and notification preferences</p>
+    </header>
+
+    <div class="content">
+      <section class="section">
+        <h2>API Configuration</h2>
+        <div class="form-group">
+          <label for="api-endpoint">API Endpoint</label>
+          <input type="text" id="api-endpoint"
+                 placeholder="http://localhost:8080"
+                 class="input-text">
+          <p class="help-text">URL of your Data-Detector API server</p>
+        </div>
+        <div class="form-group">
+          <button id="test-connection" class="btn btn-secondary">Test Connection</button>
+          <div id="connection-status" class="status-message"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Detection Namespaces</h2>
+        <p class="section-desc">Select which pattern namespaces to use for detection</p>
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" value="comm" checked>
+            <span>Common (Email, IP, Tokens)</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" value="us">
+            <span>United States (SSN, Phone)</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" value="kr">
+            <span>Korea (RRN, Phone)</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" value="cn">
+            <span>China</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" value="jp">
+            <span>Japan</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" value="eu">
+            <span>European Union (GDPR)</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" value="in">
+            <span>India</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" value="tw">
+            <span>Taiwan</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Monitoring Options</h2>
+        <p class="section-desc">Choose what to monitor for PII</p>
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="monitor-forms" checked>
+            <span>Monitor form inputs</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="monitor-dom" checked>
+            <span>Scan page content</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="monitor-network">
+            <span>Monitor network requests (experimental)</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Notifications</h2>
+        <div class="form-group">
+          <label for="threshold">Detection Threshold</label>
+          <select id="threshold" class="select">
+            <option value="all">All detections</option>
+            <option value="medium">Medium severity and above</option>
+            <option value="high" selected>High severity only</option>
+            <option value="critical">Critical only</option>
+          </select>
+          <p class="help-text">Only show notifications for matches at or above this severity</p>
+        </div>
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="show-notifications" checked>
+            <span>Show browser notifications</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Domain Whitelist</h2>
+        <p class="section-desc">Don't scan these domains (one per line)</p>
+        <textarea id="whitelist"
+                  rows="5"
+                  class="textarea"
+                  placeholder="example.com&#10;trusted-site.org"></textarea>
+      </section>
+
+      <footer class="footer">
+        <button id="save-btn" class="btn btn-primary">Save Settings</button>
+        <button id="reset-btn" class="btn btn-secondary">Reset to Defaults</button>
+        <div id="save-status" class="status-message"></div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="../lib/utils.js"></script>
+  <script src="../lib/storage-manager.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

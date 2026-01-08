@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/Data%20Detector.png" alt="Data Detector Logo" width="200">
+  <img src="images/Data%20Detector.jpg" alt="Data Detector Logo" width="200">
 </p>
 
 # Data Detector
@@ -101,6 +101,38 @@ data-detector serve --port 8080
 | `serve` | Run as an HTTP/gRPC server. | `--port`, `--host`, `--workers` |
 
 Use `data-detector --help` for a full list of options.
+
+## Chrome Extension
+
+Monitor PII in real-time as you browse with the **PII Detector Chrome Extension**. It uses a hybrid approach combining fast client-side pattern matching with the Data-Detector API for accurate verification.
+
+### Features
+
+- **Multi-Source Monitoring**: Detect PII in form inputs, page content, and network requests
+- **Real-Time Alerts**: Visual highlights and notifications when PII is detected
+- **Privacy-Preserving**: Never stores actual PII values, only metadata
+- **Hybrid Detection**: Fast client-side matching with API verification for accuracy
+- **Offline Fallback**: Continues working even when API is unavailable
+
+### Quick Setup
+
+1. **Start the API Server**:
+   ```bash
+   data-detector serve --port 8080
+   ```
+
+2. **Load the Extension**:
+   - Open Chrome and go to `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked" and select the `chrome-extension` directory
+
+3. **Configure Settings**:
+   - Click the extension icon
+   - Go to Settings
+   - Verify API endpoint is `http://localhost:8080`
+   - Select namespaces (e.g., `comm`, `us`, `kr`)
+
+For detailed instructions, architecture, and troubleshooting, see the [Chrome Extension README](chrome-extension/README.md).
 
 ## Documentation
 
