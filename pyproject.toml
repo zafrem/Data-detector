@@ -36,6 +36,7 @@ dependencies = [
     "prometheus-client>=0.19.0",
     "pydantic>=2.0.0",
     "python-multipart>=0.0.6",
+    "google-re2>=1.1",
 ]
 
 [project.optional-dependencies]
@@ -143,6 +144,7 @@ module = [
     "langdetect",
     "konlpy.*",
     "jieba.*",
+    "re2",
 ]
 ignore_missing_imports = true
 
@@ -153,6 +155,11 @@ python_classes = "Test*"
 python_functions = "test_*"
 addopts = "-v"
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "ignore:pkg_resources is deprecated:DeprecationWarning",
+    "ignore:Deprecated call to `pkg_resources.declare_namespace:DeprecationWarning",
+]
 
 [tool.coverage.run]
 source = ["src/datadetector"]

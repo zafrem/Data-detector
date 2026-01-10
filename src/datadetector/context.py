@@ -5,12 +5,17 @@ hints such as column names, field labels, or descriptions. This significantly
 improves performance by only checking relevant patterns instead of all 61 patterns.
 """
 
-import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 import yaml
+
+from datadetector import regex_compat
+
+# Pre-compile pattern for splitting field names
+_FIELD_SPLIT_PATTERN = regex_compat.compile(r"[_\-\s\.]+")
+
 
 
 @dataclass
@@ -138,7 +143,7 @@ class KeywordRegistry:
         for pattern in patterns:
             if "*" in pattern:
                 # Convert wildcard to regex
-                pattern_re = re.compile(pattern.replace("*", ".*"))
+                pattern_re = regex_compat.compile(pattern.replace("*", ".*"))
                 # Match against all available patterns
                 matched = [p for p in all_patterns if pattern_re.match(p)]
                 expanded.update(matched)
@@ -227,7 +232,7 @@ def create_context_from_field_name(field_name: str, strategy: str = "loose") -> 
         ContextHint with extracted keywords
     """
     # Split by common delimiters
-    keywords = re.split(r"[_\-\s\.]+", field_name.lower())
+    keywords = _FIELD_SPLIT_PATTERN.split(field_name.lower())
     # Filter out empty strings and single characters
     keywords = [kw for kw in keywords if len(kw) > 1]
 

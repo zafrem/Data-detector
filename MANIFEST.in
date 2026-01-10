@@ -4,7 +4,7 @@ recursive-include config *.yml *.yaml
 include schemas/*.json
 
 # Include utility scripts
-include restore_tokens.py
+recursive-include scripts *.py
 
 # Include documentation
 include README.md

@@ -30,10 +30,11 @@ What it changes:
 """
 
 import os
-import re
 import sys
 from pathlib import Path
 from typing import Optional
+
+from datadetector import regex_compat
 
 
 def restore_tokens_yml(file_path: Optional[str] = None) -> bool:
@@ -134,7 +135,8 @@ def restore_tokens_yml(file_path: Optional[str] = None) -> bool:
       type: "API Key"'''
 
     # Try regex replacement first
-    content = re.sub(stripe_pattern, real_stripe, content)
+    compiled_pattern = regex_compat.compile(stripe_pattern)
+    content = compiled_pattern.sub(real_stripe, content)
 
     # If regex didn't work, try simple string replacement
     if content == original_content:

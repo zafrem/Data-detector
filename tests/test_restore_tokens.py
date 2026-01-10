@@ -1,12 +1,8 @@
 """Tests for restore_tokens.py utility."""
 
 import os
-import sys
-from pathlib import Path
 
-# Import the module
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from restore_tokens import restore_tokens_yml
+from datadetector.restore_tokens import restore_tokens_yml
 
 
 class TestRestoreTokens:
@@ -139,7 +135,7 @@ class TestRestoreTokens:
         )
 
         # Patch the default path
-        import restore_tokens
+        from datadetector import restore_tokens
 
         original_func = restore_tokens.restore_tokens_yml
 

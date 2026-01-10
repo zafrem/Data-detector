@@ -1,13 +1,13 @@
 """Pattern registry for loading and managing regex patterns."""
 
 import logging
-import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import jsonschema
 import yaml
 
+from datadetector import regex_compat
 from datadetector.models import (
     ActionOnMatch,
     Category,
@@ -217,24 +217,17 @@ def _compile_pattern(namespace: str, data: Dict[str, Any]) -> Pattern:
     category = Category(data["category"])
     pattern_str = data["pattern"]
 
-    # Parse regex flags
-    flags = 0
-    for flag_name in data.get("flags", []):
-        if flag_name == "IGNORECASE":
-            flags |= re.IGNORECASE
-        elif flag_name == "MULTILINE":
-            flags |= re.MULTILINE
-        elif flag_name == "DOTALL":
-            flags |= re.DOTALL
-        elif flag_name == "UNICODE":
-            flags |= re.UNICODE
-        elif flag_name == "VERBOSE":
-            flags |= re.VERBOSE
+    # Parse regex flags and compile pattern
+    flag_names = data.get("flags", [])
+    flags = regex_compat.convert_flags(flag_names)
 
-    # Compile pattern
     try:
-        compiled = re.compile(pattern_str, flags)
-    except re.error as e:
+        compiled = regex_compat.compile(
+            pattern_str,
+            flags,
+            pattern_id=f"{namespace}/{pattern_id}",
+        )
+    except regex_compat.error as e:
         raise ValueError(f"Failed to compile pattern {namespace}/{pattern_id}: {e}") from e
 
     # Parse policy

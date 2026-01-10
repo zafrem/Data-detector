@@ -7,13 +7,14 @@ grammatical particles are attached to PII without spaces.
 """
 
 import logging
-import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 import yaml
+
+from datadetector import regex_compat
 
 logger = logging.getLogger(__name__)
 
@@ -443,6 +444,9 @@ class SmartTokenizer:
     PII_CHARS = r"[a-zA-Z0-9\-\.\@\+\_\:\/]"
     NON_PII_CHARS = r"[^a-zA-Z0-9\-\.\@\+\_\:\/\s]"
 
+    # Pre-compiled pattern for PII character matching
+    _PII_PATTERN = regex_compat.compile(PII_CHARS)
+
     def __init__(self) -> None:
         self._cache: Dict[str, Tuple[str, List[int]]] = {}
 
@@ -475,7 +479,7 @@ class SmartTokenizer:
             curr_type = 2
             if char.isspace():
                 curr_type = 2
-            elif re.match(r"[a-zA-Z0-9\-\.\@\+\_\:\/]", char):
+            elif self._PII_PATTERN.match(char):
                 curr_type = 0
             elif ord(char) > 127:  # Rough check for CJK/Unicode
                 curr_type = 1

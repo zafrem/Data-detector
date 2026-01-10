@@ -166,6 +166,8 @@ patterns:
 
     def test_compile_pattern_with_all_flags(self):
         """Test compiling pattern with all regex flags."""
+        from datadetector import regex_compat
+
         pattern_data = {
             "id": "test_01",
             "location": "test",
@@ -181,11 +183,11 @@ patterns:
         }
 
         pattern = _compile_pattern("test", pattern_data)
-        assert pattern.compiled.flags & re.IGNORECASE
-        assert pattern.compiled.flags & re.MULTILINE
-        assert pattern.compiled.flags & re.DOTALL
-        assert pattern.compiled.flags & re.UNICODE
-        assert pattern.compiled.flags & re.VERBOSE
+        # Check flags using regex_compat constants (RE2)
+        # Note: UNICODE is implicit in RE2 (always enabled), VERBOSE is not supported
+        assert pattern.compiled.flags & regex_compat.IGNORECASE
+        assert pattern.compiled.flags & regex_compat.MULTILINE
+        assert pattern.compiled.flags & regex_compat.DOTALL
 
     def test_compile_pattern_regex_error(self):
         """Test error when regex fails to compile."""

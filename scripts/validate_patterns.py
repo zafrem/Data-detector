@@ -1,10 +1,11 @@
 import argparse
-import re
 import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
 import yaml
+
+from datadetector import regex_compat
 
 # ANSI colors
 GREEN = "\033[92m"
@@ -20,19 +21,23 @@ def load_yaml(path: Path) -> Dict[str, Any]:
 
 def check_regex_compilation(pattern: str, pattern_id: str) -> bool:
     try:
-        re.compile(pattern)
+        regex_compat.compile(pattern, pattern_id=pattern_id)
         return True
-    except re.error as e:
-        print(f"{RED}[FAIL] {pattern_id}: Invalid Regex - {e}{RESET}")
+    except regex_compat.error as e:
+        print(f"{RED}[FAIL] {pattern_id}: Invalid Regex (RE2) - {e}{RESET}")
         return False
 
 
-def check_go_compatibility(pattern: str, pattern_id: str) -> List[str]:
-    """Simple heuristic check for Go/RE2 compatibility issues."""
+def check_re2_compatibility(pattern: str, pattern_id: str) -> List[str]:
+    """Check for RE2 compatibility issues (informational only, compilation will fail anyway)."""
     issues = []
     # Check for lookarounds which RE2 doesn't support
     if "(?=" in pattern or "(?!" in pattern or "(?<=" in pattern or "(?<!" in pattern:
-        issues.append("Contains lookarounds (unsupported in Go/RE2)")
+        issues.append("Contains lookarounds (unsupported in RE2)")
+    # Check for backreferences using regex_compat
+    backref_pattern = regex_compat.compile(r"\\[1-9]")
+    if backref_pattern.search(pattern):
+        issues.append("Contains backreferences (unsupported in RE2)")
     return issues
 
 
@@ -46,8 +51,9 @@ def validate_examples(item: Dict[str, Any]) -> int:
 
     # 1. Compile Regex
     try:
-        regex = re.compile(regex_str, re.IGNORECASE if "IGNORECASE" in item.get("flags", []) else 0)
-    except re.error:
+        flags = regex_compat.convert_flags(item.get("flags", []))
+        regex = regex_compat.compile(regex_str, flags, pattern_id=pattern_id)
+    except regex_compat.error:
         # Already handled in compilation check
         return 1
 
@@ -130,10 +136,10 @@ def main():
                 total_failures += 1
                 continue
 
-            # Check Go Compatibility Warnings
-            go_issues = check_go_compatibility(pattern_str, pid)
-            for issue in go_issues:
-                print(f"{YELLOW}[WARN] {pid}: Go Compatibility - {issue}{RESET}")
+            # Check RE2 Compatibility (informational, compilation will fail anyway)
+            re2_issues = check_re2_compatibility(pattern_str, pid)
+            for issue in re2_issues:
+                print(f"{YELLOW}[WARN] {pid}: RE2 Compatibility - {issue}{RESET}")
 
             # Check Examples
             fails = validate_examples(item)
