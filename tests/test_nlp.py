@@ -978,12 +978,12 @@ if JIEBA_AVAILABLE:
 
         def test_find_with_japanese_segmentation(self):
             """Test finding PII with Japanese segmentation."""
+            import importlib.util
+
             from datadetector import Engine, NLPConfig, load_registry
 
             # Skip if sudachi not available
-            try:
-                import sudachipy
-            except ImportError:
+            if importlib.util.find_spec("sudachipy") is None:
                 pytest.skip("sudachipy not available")
 
             registry = load_registry()

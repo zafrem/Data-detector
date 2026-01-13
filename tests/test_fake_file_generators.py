@@ -8,7 +8,6 @@ import pytest
 from datadetector import FakeDataGenerator
 
 
-
 @pytest.fixture
 def generator():
     """Create FakeDataGenerator instance."""

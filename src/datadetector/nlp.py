@@ -148,34 +148,34 @@ def _load_default_stopwords() -> Dict[str, Set[str]]:
         # Determine path to stopwords.yml
         # src/datadetector/nlp.py -> ... -> pattern-engine/keyword/stopwords.yml
         root = Path(__file__).parent.parent.parent
-        
+
         # Check potential locations
         possible_paths = [
             root / "pattern-engine" / "keyword" / "stopwords.yml",
             root / "pattern-engine" / "keyword" / "stopwords.yaml",
             # Fallback for installed package if patterns are packaged differently
-            Path(__file__).parent / "patterns" / "keyword" / "stopwords.yml", 
+            Path(__file__).parent / "patterns" / "keyword" / "stopwords.yml",
         ]
-        
+
         yaml_path = None
         for path in possible_paths:
             if path.exists():
                 yaml_path = path
                 break
-        
+
         if not yaml_path:
             logger.warning("stopwords.yml not found, using empty defaults")
             return {}
 
         with open(yaml_path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
-            
+
         stopwords = {}
         if data and "stopwords" in data:
             for lang, content in data["stopwords"].items():
                 if "words" in content:
                     stopwords[lang] = set(content["words"])
-        
+
         return stopwords
 
     except Exception as e:
@@ -226,7 +226,9 @@ class StopwordFilter:
         Args:
             custom_stopwords: Additional stopwords to filter
         """
-        self.stopwords = KOREAN_STOPWORDS | ENGLISH_STOPWORDS | CHINESE_STOPWORDS | JAPANESE_STOPWORDS
+        self.stopwords = (
+            KOREAN_STOPWORDS | ENGLISH_STOPWORDS | CHINESE_STOPWORDS | JAPANESE_STOPWORDS
+        )
         if custom_stopwords:
             self.stopwords |= custom_stopwords
 

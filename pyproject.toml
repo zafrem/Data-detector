@@ -97,6 +97,7 @@ Issues = "https://github.com/zafrem/data-detector/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["datadetector*", "verification*"]
 
 [tool.setuptools.package-data]
 datadetector = ["py.typed"]

@@ -24,13 +24,15 @@ class TestCompile:
         with pytest.raises(regex_compat.error):
             regex_compat.compile(r"[")
 
+    @pytest.mark.skipif(not regex_compat.HAS_RE2, reason="RE2 not available")
     def test_compile_lookahead_raises(self) -> None:
-        """Test that lookaheads are not supported."""
+        """Test that lookaheads are not supported in RE2."""
         with pytest.raises(regex_compat.error):
             regex_compat.compile(r"(?=\d)\d+")
 
+    @pytest.mark.skipif(not regex_compat.HAS_RE2, reason="RE2 not available")
     def test_compile_lookbehind_raises(self) -> None:
-        """Test that lookbehinds are not supported."""
+        """Test that lookbehinds are not supported in RE2."""
         with pytest.raises(regex_compat.error):
             regex_compat.compile(r"(?<=\d)\d+")
 
