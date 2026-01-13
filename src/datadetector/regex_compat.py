@@ -27,7 +27,7 @@ try:
     HAS_RE2 = True
     logger.debug("Using google-re2 for regex operations (ReDoS-safe)")
 except ImportError:
-    re2 = None  # type: ignore[assignment]
+    re2 = None
     HAS_RE2 = False
     logger.info(
         "google-re2 not available, using standard re module. "

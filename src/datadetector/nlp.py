@@ -10,7 +10,7 @@ import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import yaml
 
@@ -393,7 +393,7 @@ class JapaneseTokenizer:
         else:
             self.split_mode = tokenizer.Tokenizer.SplitMode.C
 
-    def tokenize(self, text: str, include_pos: bool = False) -> List[str]:
+    def tokenize(self, text: str, include_pos: bool = False) -> List[Any]:
         """
         Tokenize Japanese text.
 

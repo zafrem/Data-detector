@@ -150,6 +150,8 @@ module = [
     "langdetect",
     "konlpy.*",
     "jieba.*",
+    "sudachipy",
+    "sudachipy.*",
     "re2",
 ]
 ignore_missing_imports = true
