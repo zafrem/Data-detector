@@ -36,7 +36,6 @@ dependencies = [
     "prometheus-client>=0.19.0",
     "pydantic>=2.0.0",
     "python-multipart>=0.0.6",
-    "google-re2>=1.1",
 ]
 
 [project.optional-dependencies]
@@ -83,6 +82,9 @@ nlp = [
     "sudachipy>=0.6.7",
     "sudachidict_core>=20230110",
 ]
+re2 = [
+    "google-re2>=1.1",
+]
 
 [project.scripts]
 data-detector = "datadetector.cli:main"
@@ -125,10 +127,13 @@ select = [
     "W",   # pycodestyle warnings
     "UP",  # pyupgrade
 ]
-# Ignore Python 3.9+ specific rules (project supports Python 3.8+)
+# Ignore Python 3.9+/3.10+ specific rules (project supports Python 3.8+)
 ignore = [
     "UP006",  # Use builtin collection types (list, dict, tuple) - requires Python 3.9+
+    "UP007",  # Use X | Y for type unions - requires Python 3.10+
     "UP035",  # Import from typing instead of collections.abc - requires Python 3.9+
+    "UP037",  # Remove quotes from type annotation - requires Python 3.10+ for some cases
+    "UP045",  # Use X | None instead of Optional[X] - requires Python 3.10+
 ]
 
 [tool.mypy]

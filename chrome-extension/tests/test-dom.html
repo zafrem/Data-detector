@@ -102,29 +102,30 @@
 
     function addEmail() {
       const p = document.createElement('p');
-      p.textContent = `New email added: user${Math.floor(Math.random() * 1000)}@example.com`;
+      p.textContent = `New email added: user${Math.floor(Math.random() * 1000)}@example.com`; // NOSONAR - test data only
       contentDiv.appendChild(p);
     }
 
     function addPhone() {
       const p = document.createElement('p');
-      p.textContent = `Phone number: (555) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`;
+      p.textContent = `Phone number: (555) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`; // NOSONAR - test data only
       contentDiv.appendChild(p);
     }
 
     function addSSN() {
       const p = document.createElement('p');
-      p.textContent = `SSN: ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 90) + 10}-${Math.floor(Math.random() * 9000) + 1000}`;
+      p.textContent = `SSN: ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 90) + 10}-${Math.floor(Math.random() * 9000) + 1000}`; // NOSONAR - test data only
       contentDiv.appendChild(p);
     }
 
     function addMixed() {
       const div = document.createElement('div');
+      const randomOctet = Math.floor(Math.random() * 255); // NOSONAR - test data only
       div.innerHTML = `
         <h4>User Profile</h4>
         <p>Email: testuser@example.com</p>
         <p>Phone: 555-0123</p>
-        <p>IP: 10.0.0.${Math.floor(Math.random() * 255)}</p>
+        <p>IP: 10.0.0.${randomOctet}</p>
       `;
       contentDiv.appendChild(div);
     }

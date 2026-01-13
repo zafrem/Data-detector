@@ -889,7 +889,7 @@ if KONLPY_AVAILABLE:
             result = engine.find(text, namespaces=["kr"])
 
             # Should find the phone number even with particle attached
-            assert result.has_matches or len(result.matches) >= 0
+            assert result.has_matches
 
 
 if JIEBA_AVAILABLE:

@@ -1,20 +1,37 @@
 """RE2-based regex compatibility layer.
 
-This module provides a unified interface for regex operations using google-re2.
-RE2 guarantees linear-time matching, preventing ReDoS attacks.
+This module provides a unified interface for regex operations using google-re2
+when available, with automatic fallback to Python's standard re module.
+
+RE2 guarantees linear-time matching, preventing ReDoS attacks. When RE2 is not
+available, the standard re module is used (which may be vulnerable to ReDoS
+with certain patterns).
 
 Note: RE2's \\b (word boundary) only works with ASCII word characters. For Unicode
 patterns (Korean, Chinese, Japanese, etc.), \\b is automatically removed as these
 languages use whitespace boundaries naturally.
 """
 
-import logging
-import re as std_re  # Used only for pattern transformation, not matching
-from typing import Iterator, List, Optional, Tuple
+from __future__ import annotations
 
-import re2
+import logging
+import re as std_re
+from typing import Iterator, List, Optional, Union
 
 logger = logging.getLogger(__name__)
+
+# Try to import google-re2, fall back to standard re if unavailable
+try:
+    import re2
+    HAS_RE2 = True
+    logger.debug("Using google-re2 for regex operations (ReDoS-safe)")
+except ImportError:
+    re2 = None  # type: ignore[assignment]
+    HAS_RE2 = False
+    logger.info(
+        "google-re2 not available, using standard re module. "
+        "Install google-re2 for ReDoS protection: pip install google-re2"
+    )
 
 # Flag constants (same values as standard re module for compatibility)
 IGNORECASE = 2  # re.IGNORECASE
@@ -141,8 +158,10 @@ def _transform_word_boundaries(pattern: str) -> str:
     return transformed
 
 
-def _create_options(flags: int = 0) -> re2.Options:
-    """Create re2.Options from flag bitmask."""
+def _create_options(flags: int = 0) -> "Optional[re2.Options]":
+    """Create re2.Options from flag bitmask (RE2 only)."""
+    if not HAS_RE2:
+        return None
     options = re2.Options()
     if flags & IGNORECASE:
         options.case_sensitive = False
@@ -151,6 +170,18 @@ def _create_options(flags: int = 0) -> re2.Options:
     # Note: MULTILINE is handled by adding (?m) prefix to pattern
     # (see _apply_multiline_flag function)
     return options
+
+
+def _convert_flags_to_std_re(flags: int) -> int:
+    """Convert internal flag values to standard re module flags."""
+    std_flags = 0
+    if flags & IGNORECASE:
+        std_flags |= std_re.IGNORECASE
+    if flags & MULTILINE:
+        std_flags |= std_re.MULTILINE
+    if flags & DOTALL:
+        std_flags |= std_re.DOTALL
+    return std_flags
 
 
 def _apply_multiline_flag(pattern: str, flags: int) -> str:
@@ -163,7 +194,11 @@ def _apply_multiline_flag(pattern: str, flags: int) -> str:
 
 
 class CompiledPattern:
-    """Wrapper for compiled RE2 pattern with fullmatch support."""
+    """Wrapper for compiled regex pattern with fullmatch support.
+
+    Uses RE2 when available for ReDoS protection, otherwise falls back
+    to Python's standard re module.
+    """
 
     def __init__(
         self,
@@ -172,7 +207,7 @@ class CompiledPattern:
         pattern_id: str = "",
     ) -> None:
         """
-        Compile a regex pattern using RE2.
+        Compile a regex pattern.
 
         Args:
             pattern: Regex pattern string
@@ -182,28 +217,41 @@ class CompiledPattern:
         self.pattern_str = pattern
         self.flags = flags
         self.pattern_id = pattern_id
+        self._using_re2 = HAS_RE2
 
         # Transform pattern for Unicode compatibility
         # First convert \uXXXX escapes to actual characters
         transformed_pattern = _convert_unicode_escapes(pattern)
         # Then handle \b word boundaries for Unicode patterns
         transformed_pattern = _transform_word_boundaries(transformed_pattern)
-        # Apply MULTILINE flag via (?m) prefix
-        transformed_pattern = _apply_multiline_flag(transformed_pattern, flags)
         self._transformed_pattern_str = transformed_pattern
 
-        # Create options from flags
-        options = _create_options(flags)
+        if HAS_RE2:
+            # Apply MULTILINE flag via (?m) prefix for RE2
+            re2_pattern = _apply_multiline_flag(transformed_pattern, flags)
 
-        # Compile the main pattern
-        self._pattern = re2.compile(transformed_pattern, options=options)
+            # Create options from flags
+            options = _create_options(flags)
 
-        # Pre-compile anchored version for fullmatch emulation
-        # Wrap in non-capturing group to preserve alternation behavior
-        self._anchored_pattern_str = f"^(?:{transformed_pattern})$"
-        self._anchored_pattern = re2.compile(self._anchored_pattern_str, options=options)
+            # Compile the main pattern with RE2
+            self._pattern: Union[re2._Pattern, std_re.Pattern[str]] = re2.compile(
+                re2_pattern, options=options
+            )
 
-    def finditer(self, text: str) -> Iterator[re2._Match]:
+            # Pre-compile anchored version for fullmatch emulation
+            # Wrap in non-capturing group to preserve alternation behavior
+            self._anchored_pattern_str = f"^(?:{re2_pattern})$"
+            self._anchored_pattern: Union[re2._Pattern, std_re.Pattern[str]] = re2.compile(
+                self._anchored_pattern_str, options=options
+            )
+        else:
+            # Use standard re module
+            std_flags = _convert_flags_to_std_re(flags)
+            self._pattern = std_re.compile(transformed_pattern, std_flags)
+            self._anchored_pattern_str = f"^(?:{transformed_pattern})$"
+            self._anchored_pattern = std_re.compile(self._anchored_pattern_str, std_flags)
+
+    def finditer(self, text: str) -> Iterator[Union["re2._Match", std_re.Match[str]]]:
         """Find all matches in text."""
         return self._pattern.finditer(text)
 
@@ -211,20 +259,22 @@ class CompiledPattern:
         """Find all matches and return as list."""
         return self._pattern.findall(text)
 
-    def search(self, text: str) -> Optional[re2._Match]:
+    def search(self, text: str) -> Optional[Union["re2._Match", std_re.Match[str]]]:
         """Search for pattern in text."""
         return self._pattern.search(text)
 
-    def match(self, text: str) -> Optional[re2._Match]:
+    def match(self, text: str) -> Optional[Union["re2._Match", std_re.Match[str]]]:
         """Match pattern at start of text."""
         return self._pattern.match(text)
 
-    def fullmatch(self, text: str) -> Optional[re2._Match]:
+    def fullmatch(self, text: str) -> Optional[Union["re2._Match", std_re.Match[str]]]:
         """
         Match pattern against entire text.
 
         RE2 doesn't have native fullmatch, so we emulate it using
         an anchored pattern: ^(?:pattern)$
+
+        For standard re, we use the same approach for consistency.
         """
         return self._anchored_pattern.match(text)
 
@@ -243,7 +293,8 @@ class CompiledPattern:
 
     def __repr__(self) -> str:
         """String representation."""
-        return f"CompiledPattern({self.pattern_str!r}, flags={self.flags})"
+        backend = "re2" if self._using_re2 else "re"
+        return f"CompiledPattern({self.pattern_str!r}, flags={self.flags}, backend={backend})"
 
 
 def compile(
@@ -301,5 +352,6 @@ def convert_flags(flag_names: List[str]) -> int:
     return flags
 
 
-# Expose re2.error for catching compilation errors
-error = re2.error
+# Expose error type for catching compilation errors
+# Use re2.error when available, otherwise use re.error
+error = re2.error if HAS_RE2 else std_re.error
