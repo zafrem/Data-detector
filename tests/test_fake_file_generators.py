@@ -1,5 +1,6 @@
 """Tests for fake file generators (Office, Image, XML)."""
 
+import sys
 import tempfile
 from pathlib import Path
 
@@ -385,6 +386,10 @@ class TestXMLGenerator:
         assert len(root) == 1000
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 9),
+    reason="reportlab requires Python 3.9+ for md5(usedforsecurity=False)",
+)
 class TestPDFGenerator:
     """Tests for PDF generation."""
 
