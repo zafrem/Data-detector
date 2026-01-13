@@ -972,7 +972,6 @@ if JIEBA_AVAILABLE:
             # Should handle Chinese text with PII
             assert isinstance(result.matches, list)
 
-
     class TestEngineWithJapanese:
         """Test engine with Japanese NLP."""
 

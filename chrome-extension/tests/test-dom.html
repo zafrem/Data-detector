@@ -100,27 +100,35 @@
   <script>
     const contentDiv = document.getElementById('dynamic-content');
 
+    // Cryptographically secure random number generator
+    function secureRandom(max) {
+      const crypto = window.crypto || window.msCrypto;
+      const array = new Uint32Array(1);
+      crypto.getRandomValues(array);
+      return array[0] % max;
+    }
+
     function addEmail() {
       const p = document.createElement('p');
-      p.textContent = `New email added: user${Math.floor(Math.random() * 1000)}@example.com`; // NOSONAR - test data only
+      p.textContent = `New email added: user${secureRandom(1000)}@example.com`;
       contentDiv.appendChild(p);
     }
 
     function addPhone() {
       const p = document.createElement('p');
-      p.textContent = `Phone number: (555) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`; // NOSONAR - test data only
+      p.textContent = `Phone number: (555) ${secureRandom(900) + 100}-${secureRandom(9000) + 1000}`;
       contentDiv.appendChild(p);
     }
 
     function addSSN() {
       const p = document.createElement('p');
-      p.textContent = `SSN: ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 90) + 10}-${Math.floor(Math.random() * 9000) + 1000}`; // NOSONAR - test data only
+      p.textContent = `SSN: ${secureRandom(900) + 100}-${secureRandom(90) + 10}-${secureRandom(9000) + 1000}`;
       contentDiv.appendChild(p);
     }
 
     function addMixed() {
       const div = document.createElement('div');
-      const randomOctet = Math.floor(Math.random() * 255); // NOSONAR - test data only
+      const randomOctet = secureRandom(255);
       div.innerHTML = `
         <h4>User Profile</h4>
         <p>Email: testuser@example.com</p>

@@ -111,8 +111,8 @@ class TestBusinessRegistrationTight:
 
     def test_business_reg_exact_length(self, engine):
         """Business registration should match exactly 10 digits with hyphens."""
-        # Should match (with hyphens)
-        valid = ["123-45-67890"]
+        # Should match (with hyphens) - use valid numbers that pass checksum verification
+        valid = ["123-81-00995", "220-81-04569"]
         for num in valid:
             result = engine.find(num)
             matches = [m for m in result.matches if m.ns_id == "kr/business_registration_01"]

@@ -17,7 +17,6 @@ from datadetector import regex_compat
 _FIELD_SPLIT_PATTERN = regex_compat.compile(r"[_\-\s\.]+")
 
 
-
 @dataclass
 class ContextHint:
     """Contextual information to guide pattern selection.

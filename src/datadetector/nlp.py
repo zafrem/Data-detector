@@ -191,7 +191,6 @@ CHINESE_STOPWORDS = _STOPWORDS_DATA.get("zh", set())
 JAPANESE_STOPWORDS = _STOPWORDS_DATA.get("ja", set())
 
 
-
 class LanguageDetector:
     """Detects the language of input text."""
 

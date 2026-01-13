@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 # Try to import google-re2, fall back to standard re if unavailable
 try:
     import re2
+
     HAS_RE2 = True
     logger.debug("Using google-re2 for regex operations (ReDoS-safe)")
 except ImportError:
@@ -40,13 +41,13 @@ DOTALL = 16  # re.DOTALL
 
 # Unicode ranges for CJK characters (used to detect when \b needs transformation)
 _CJK_RANGES = [
-    (0x4E00, 0x9FFF),    # CJK Unified Ideographs
-    (0x3400, 0x4DBF),    # CJK Unified Ideographs Extension A
-    (0xAC00, 0xD7AF),    # Hangul Syllables (Korean)
-    (0x3040, 0x309F),    # Hiragana (Japanese)
-    (0x30A0, 0x30FF),    # Katakana (Japanese)
-    (0x1100, 0x11FF),    # Hangul Jamo
-    (0x3130, 0x318F),    # Hangul Compatibility Jamo
+    (0x4E00, 0x9FFF),  # CJK Unified Ideographs
+    (0x3400, 0x4DBF),  # CJK Unified Ideographs Extension A
+    (0xAC00, 0xD7AF),  # Hangul Syllables (Korean)
+    (0x3040, 0x309F),  # Hiragana (Japanese)
+    (0x30A0, 0x30FF),  # Katakana (Japanese)
+    (0x1100, 0x11FF),  # Hangul Jamo
+    (0x3130, 0x318F),  # Hangul Compatibility Jamo
 ]
 
 
@@ -69,10 +70,10 @@ def _convert_unicode_escapes(pattern: str) -> str:
     i = 0
     while i < len(pattern):
         # Check if we have enough characters for \uXXXX (need at least 6 more including current)
-        if i + 6 <= len(pattern) and pattern[i:i+2] == '\\u':
+        if i + 6 <= len(pattern) and pattern[i : i + 2] == "\\u":
             # Check if next 4 chars are hex
-            hex_part = pattern[i+2:i+6]
-            if len(hex_part) == 4 and all(c in '0123456789abcdefABCDEF' for c in hex_part):
+            hex_part = pattern[i + 2 : i + 6]
+            if len(hex_part) == 4 and all(c in "0123456789abcdefABCDEF" for c in hex_part):
                 # Convert to actual character
                 char = chr(int(hex_part, 16))
                 result.append(char)
@@ -81,7 +82,7 @@ def _convert_unicode_escapes(pattern: str) -> str:
         result.append(pattern[i])
         i += 1
 
-    return ''.join(result)
+    return "".join(result)
 
 
 def _has_unicode_char_class(pattern: str) -> bool:
@@ -151,9 +152,7 @@ def _transform_word_boundaries(pattern: str) -> str:
     # 2. The character class ranges already limit what can match
     transformed = pattern.replace(r"\b", "")
 
-    logger.debug(
-        f"Transformed pattern for Unicode compatibility: {pattern!r} -> {transformed!r}"
-    )
+    logger.debug(f"Transformed pattern for Unicode compatibility: {pattern!r} -> {transformed!r}")
 
     return transformed
 

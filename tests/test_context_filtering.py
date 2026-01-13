@@ -316,7 +316,8 @@ class TestKoreanContextFiltering:
 
     def test_korean_rrn_with_context(self, engine):
         """Should find Korean RRN with Korean keyword."""
-        text = "주민등록번호: 990101-1234567"
+        # Use valid RRN from pattern examples (990101-1234567 fails verification)
+        text = "주민등록번호: 900101-1234568"
 
         context = ContextHint(keywords=["주민등록번호"], strategy="strict")
         result = engine.find(text, context=context)
