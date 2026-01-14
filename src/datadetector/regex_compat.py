@@ -16,9 +16,18 @@ from __future__ import annotations
 
 import logging
 import re as std_re
+from enum import Enum
 from typing import Iterator, List, Optional, Union
 
 logger = logging.getLogger(__name__)
+
+
+class RegexEngine(Enum):
+    """Regex engine selection mode."""
+
+    AUTO = "auto"  # Use RE2 if available, fallback to standard re
+    RE2 = "re2"  # Force RE2 (error if unavailable)
+    STANDARD = "standard"  # Force standard re module
 
 # Try to import google-re2, fall back to standard re if unavailable
 try:
@@ -33,6 +42,55 @@ except ImportError:
         "google-re2 not available, using standard re module. "
         "Install google-re2 for ReDoS protection: pip install google-re2"
     )
+
+# Module-level engine preference (default: AUTO)
+_engine_preference: RegexEngine = RegexEngine.AUTO
+
+
+def set_engine(engine: RegexEngine) -> None:
+    """
+    Set the preferred regex engine.
+
+    Args:
+        engine: RegexEngine.AUTO (default), RegexEngine.RE2, or RegexEngine.STANDARD
+
+    Raises:
+        ValueError: If RE2 is requested but not available
+
+    Example:
+        >>> from datadetector.regex_compat import set_engine, RegexEngine
+        >>> set_engine(RegexEngine.STANDARD)  # Force standard re for small texts
+        >>> set_engine(RegexEngine.RE2)       # Force RE2 for large texts
+        >>> set_engine(RegexEngine.AUTO)      # Use RE2 if available (default)
+    """
+    global _engine_preference
+    if engine == RegexEngine.RE2 and not HAS_RE2:
+        raise ValueError(
+            "RE2 engine requested but google-re2 is not installed. "
+            "Install it with: pip install google-re2"
+        )
+    _engine_preference = engine
+    logger.info(f"Regex engine preference set to: {engine.value}")
+
+
+def get_engine() -> RegexEngine:
+    """
+    Get the current regex engine preference.
+
+    Returns:
+        Current RegexEngine setting
+    """
+    return _engine_preference
+
+
+def _should_use_re2() -> bool:
+    """Determine if RE2 should be used based on preference and availability."""
+    if _engine_preference == RegexEngine.STANDARD:
+        return False
+    if _engine_preference == RegexEngine.RE2:
+        return True  # Already validated in set_engine
+    # AUTO mode
+    return HAS_RE2
 
 # Flag constants (same values as standard re module for compatibility)
 IGNORECASE = 2  # re.IGNORECASE
@@ -157,9 +215,9 @@ def _transform_word_boundaries(pattern: str) -> str:
     return transformed
 
 
-def _create_options(flags: int = 0) -> "Optional[re2.Options]":
+def _create_options(flags: int = 0, using_re2: bool = True) -> "Optional[re2.Options]":
     """Create re2.Options from flag bitmask (RE2 only)."""
-    if not HAS_RE2:
+    if not using_re2 or not HAS_RE2:
         return None
     options = re2.Options()
     if flags & IGNORECASE:
@@ -216,7 +274,7 @@ class CompiledPattern:
         self.pattern_str = pattern
         self.flags = flags
         self.pattern_id = pattern_id
-        self._using_re2 = HAS_RE2
+        self._using_re2 = _should_use_re2()
 
         # Transform pattern for Unicode compatibility
         # First convert \uXXXX escapes to actual characters
@@ -225,12 +283,12 @@ class CompiledPattern:
         transformed_pattern = _transform_word_boundaries(transformed_pattern)
         self._transformed_pattern_str = transformed_pattern
 
-        if HAS_RE2:
+        if self._using_re2:
             # Apply MULTILINE flag via (?m) prefix for RE2
             re2_pattern = _apply_multiline_flag(transformed_pattern, flags)
 
             # Create options from flags
-            options = _create_options(flags)
+            options = _create_options(flags, using_re2=True)
 
             # Compile the main pattern with RE2
             self._pattern: Union[re2._Pattern, std_re.Pattern[str]] = re2.compile(

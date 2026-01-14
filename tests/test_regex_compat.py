@@ -221,3 +221,101 @@ class TestCompiledPatternRepr:
         repr_str = repr(pattern)
         assert "CompiledPattern" in repr_str
         assert r"\d+" in repr_str
+
+
+class TestEngineSelection:
+    """Tests for regex engine selection."""
+
+    def teardown_method(self) -> None:
+        """Reset engine to AUTO after each test."""
+        regex_compat.set_engine(regex_compat.RegexEngine.AUTO)
+
+    def test_default_engine_is_auto(self) -> None:
+        """Test that default engine is AUTO."""
+        # Reset to ensure clean state
+        regex_compat.set_engine(regex_compat.RegexEngine.AUTO)
+        assert regex_compat.get_engine() == regex_compat.RegexEngine.AUTO
+
+    def test_set_engine_standard(self) -> None:
+        """Test setting engine to STANDARD."""
+        regex_compat.set_engine(regex_compat.RegexEngine.STANDARD)
+        assert regex_compat.get_engine() == regex_compat.RegexEngine.STANDARD
+
+        # Patterns should use standard re
+        pattern = regex_compat.compile(r"\d+")
+        assert pattern._using_re2 is False
+
+    def test_set_engine_auto(self) -> None:
+        """Test setting engine to AUTO."""
+        regex_compat.set_engine(regex_compat.RegexEngine.STANDARD)
+        regex_compat.set_engine(regex_compat.RegexEngine.AUTO)
+        assert regex_compat.get_engine() == regex_compat.RegexEngine.AUTO
+
+        # In AUTO mode, _using_re2 should match HAS_RE2
+        pattern = regex_compat.compile(r"\d+")
+        assert pattern._using_re2 == regex_compat.HAS_RE2
+
+    @pytest.mark.skipif(not regex_compat.HAS_RE2, reason="RE2 not available")
+    def test_set_engine_re2_when_available(self) -> None:
+        """Test setting engine to RE2 when RE2 is available."""
+        regex_compat.set_engine(regex_compat.RegexEngine.RE2)
+        assert regex_compat.get_engine() == regex_compat.RegexEngine.RE2
+
+        # Patterns should use RE2
+        pattern = regex_compat.compile(r"\d+")
+        assert pattern._using_re2 is True
+
+    @pytest.mark.skipif(regex_compat.HAS_RE2, reason="RE2 is available")
+    def test_set_engine_re2_raises_when_unavailable(self) -> None:
+        """Test that setting RE2 raises error when unavailable."""
+        with pytest.raises(ValueError, match="google-re2 is not installed"):
+            regex_compat.set_engine(regex_compat.RegexEngine.RE2)
+
+    def test_standard_mode_works_for_all_patterns(self) -> None:
+        """Test that STANDARD mode compiles and matches patterns correctly."""
+        regex_compat.set_engine(regex_compat.RegexEngine.STANDARD)
+
+        # Test basic pattern
+        pattern = regex_compat.compile(r"\d{3}-\d{4}")
+        assert pattern.fullmatch("123-4567") is not None
+        assert pattern.search("call 123-4567 now") is not None
+
+        # Test with flags
+        pattern_ci = regex_compat.compile(r"test", flags=regex_compat.IGNORECASE)
+        assert pattern_ci.search("TEST") is not None
+
+    def test_standard_mode_supports_lookahead(self) -> None:
+        """Test that STANDARD mode supports lookahead (RE2 doesn't)."""
+        regex_compat.set_engine(regex_compat.RegexEngine.STANDARD)
+
+        # Lookahead should work in standard mode
+        pattern = regex_compat.compile(r"\d+(?=\s*USD)")
+        match = pattern.search("100 USD")
+        assert match is not None
+        assert match.group() == "100"
+
+    def test_standard_mode_supports_lookbehind(self) -> None:
+        """Test that STANDARD mode supports lookbehind (RE2 doesn't)."""
+        regex_compat.set_engine(regex_compat.RegexEngine.STANDARD)
+
+        # Lookbehind should work in standard mode
+        pattern = regex_compat.compile(r"(?<=\$)\d+")
+        match = pattern.search("$100")
+        assert match is not None
+        assert match.group() == "100"
+
+    def test_engine_switch_affects_new_patterns_only(self) -> None:
+        """Test that engine switch only affects patterns compiled after."""
+        # Start with AUTO
+        regex_compat.set_engine(regex_compat.RegexEngine.AUTO)
+        pattern1 = regex_compat.compile(r"\d+")
+        original_using_re2 = pattern1._using_re2
+
+        # Switch to STANDARD
+        regex_compat.set_engine(regex_compat.RegexEngine.STANDARD)
+        pattern2 = regex_compat.compile(r"\d+")
+
+        # pattern1 should keep its original engine
+        assert pattern1._using_re2 == original_using_re2
+        # pattern2 should use standard re
+        assert pattern2._using_re2 is False

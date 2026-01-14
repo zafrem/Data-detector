@@ -43,6 +43,7 @@ from datadetector.rag_models import (
     SecurityPolicy,
     SeverityLevel,
 )
+from datadetector.regex_compat import RegexEngine, get_engine, set_engine
 from datadetector.registry import PatternRegistry, load_registry
 from datadetector.stream_engine import StreamEngine
 from datadetector.tokenization import SecureTokenizer
@@ -98,4 +99,8 @@ __all__ = [
     "SeverityLevel",
     "RAGPolicyConfig",
     "load_rag_policy",
+    # Regex engine configuration
+    "RegexEngine",
+    "set_engine",
+    "get_engine",
 ]
