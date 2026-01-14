@@ -6,7 +6,7 @@ detection patterns, useful for testing, demos, and synthetic data generation.
 
 import json
 import logging
-import random
+import secrets
 import sqlite3
 from datetime import datetime
 from pathlib import Path
@@ -55,9 +55,12 @@ class FakeDataGenerator:
                 "Faker is required for fake data generation. " "Install it with: pip install faker"
             )
 
+        # Use cryptographically secure random number generator
+        self._rng = secrets.SystemRandom()
+
         if seed is not None:
             Faker.seed(seed)
-            random.seed(seed)
+            # Note: SystemRandom cannot be seeded (uses OS entropy for security)
 
         self.faker = Faker(locale)
         if seed is not None:
@@ -74,7 +77,7 @@ class FakeDataGenerator:
             # Phone numbers
             "us/phone_01": lambda: self.faker.phone_number()[:14],
             "kr/mobile_01": lambda: (
-                f"010-{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
+                f"010-{self._rng.randint(1000, 9999)}-{self._rng.randint(1000, 9999)}"
             ),
             # SSN/National IDs
             "us/ssn_01": lambda: self.faker.ssn(),
@@ -88,30 +91,31 @@ class FakeDataGenerator:
             "kr/korean_name_01": lambda: self._generate_korean_name(),
             # Addresses
             "us/zipcode_01": lambda: self.faker.zipcode(),
-            "kr/zipcode_01": lambda: f"{random.randint(10000, 99999)}",
+            "kr/zipcode_01": lambda: f"{self._rng.randint(10000, 99999)}",
             # IPs
             "comm/ipv4_01": lambda: self.faker.ipv4(),
             "comm/ipv6_01": lambda: self.faker.ipv6(),
             # URLs
             "comm/url_01": lambda: self.faker.url(),
-            # Tokens
+            # Tokens - using secrets for cryptographically secure generation
             "comm/aws_access_key_01": lambda: (
-                "AKIA" + "".join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", k=16))
+                "AKIA"
+                + "".join(
+                    secrets.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") for _ in range(16)
+                )
             ),
             "comm/github_token_01": lambda: (
                 "ghp_"
                 + "".join(
-                    random.choices(
-                        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_", k=36
-                    )
+                    secrets.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_")
+                    for _ in range(36)
                 )
             ),
             "comm/google_api_key_01": lambda: (
                 "AIza"
                 + "".join(
-                    random.choices(
-                        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_", k=35
-                    )
+                    secrets.choice("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
+                    for _ in range(35)
                 )
             ),
             # Coordinates
@@ -122,11 +126,11 @@ class FakeDataGenerator:
     def _generate_korean_rrn(self) -> str:
         """Generate a fake Korean Resident Registration Number."""
         # YYMMDD-GNNNNNN (G: 1-4 for birth year/gender)
-        year = random.randint(50, 99)
-        month = random.randint(1, 12)
-        day = random.randint(1, 28)
-        gender = random.randint(1, 4)
-        serial = random.randint(100000, 999999)
+        year = self._rng.randint(50, 99)
+        month = self._rng.randint(1, 12)
+        day = self._rng.randint(1, 28)
+        gender = self._rng.randint(1, 4)
+        serial = self._rng.randint(100000, 999999)
         return f"{year:02d}{month:02d}{day:02d}-{gender}{serial:06d}"
 
     def _generate_korean_name(self) -> str:
@@ -149,8 +153,8 @@ class FakeDataGenerator:
             "윤",
         ]
 
-        surname = random.choice(surnames)
-        given_name = random.choice(given_chars) + random.choice(given_chars)
+        surname = self._rng.choice(surnames)
+        given_name = self._rng.choice(given_chars) + self._rng.choice(given_chars)
         return surname + given_name
 
     def from_pattern(self, pattern_id: str) -> str:
@@ -435,12 +439,12 @@ class FakeDataGenerator:
         """Generate Apache-style log entry."""
         ip = self.faker.ipv4()
         timestamp = datetime.now().strftime("%d/%b/%Y:%H:%M:%S +0000")
-        method = random.choice(["GET", "POST", "PUT", "DELETE"])
+        method = self._rng.choice(["GET", "POST", "PUT", "DELETE"])
         path = f"/{self.faker.uri_path()}"
-        status = random.choice([200, 201, 301, 400, 404, 500])
-        size = random.randint(100, 50000)
+        status = self._rng.choice([200, 201, 301, 400, 404, 500])
+        size = self._rng.randint(100, 50000)
 
-        if include_pii and random.random() > 0.7:
+        if include_pii and self._rng.random() > 0.7:
             # Sometimes include email or token in query string
             path += f"?email={self.faker.email()}"
 
@@ -450,13 +454,13 @@ class FakeDataGenerator:
         """Generate JSON-formatted log entry."""
         log_entry = {
             "timestamp": datetime.now().isoformat(),
-            "level": random.choice(["INFO", "WARNING", "ERROR", "DEBUG"]),
+            "level": self._rng.choice(["INFO", "WARNING", "ERROR", "DEBUG"]),
             "message": self.faker.sentence(),
             "ip": self.faker.ipv4(),
             "user_agent": self.faker.user_agent(),
         }
 
-        if include_pii and random.random() > 0.7:
+        if include_pii and self._rng.random() > 0.7:
             log_entry["user_email"] = self.faker.email()
             log_entry["user_id"] = str(self.faker.uuid4())
 
@@ -466,11 +470,11 @@ class FakeDataGenerator:
         """Generate syslog-style entry."""
         timestamp = datetime.now().strftime("%b %d %H:%M:%S")
         hostname = self.faker.hostname()
-        process = random.choice(["sshd", "kernel", "systemd", "cron"])
-        pid = random.randint(1000, 99999)
+        process = self._rng.choice(["sshd", "kernel", "systemd", "cron"])
+        pid = self._rng.randint(1000, 99999)
         message = self.faker.sentence()
 
-        if include_pii and random.random() > 0.8:
+        if include_pii and self._rng.random() > 0.8:
             message += f" user={self.faker.user_name()} ip={self.faker.ipv4()}"
 
         return f"{timestamp} {hostname} {process}[{pid}]: {message}"
@@ -495,7 +499,7 @@ class FakeDataGenerator:
             for i in range(paragraphs):
                 paragraph = self.faker.paragraph(nb_sentences=5)
 
-                if include_pii and random.random() > 0.6:
+                if include_pii and self._rng.random() > 0.6:
                     # Inject PII into some paragraphs
                     paragraph += f" Contact: {self.faker.email()} or {self.faker.phone_number()}."
 

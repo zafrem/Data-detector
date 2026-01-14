@@ -8,7 +8,7 @@ machine learning models or testing at scale.
 import csv
 import json
 import logging
-import random
+import secrets
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -45,6 +45,8 @@ class BulkDataGenerator:
             self.gen = faker_generator
 
         self.faker = self.gen.faker
+        # Use cryptographically secure random number generator
+        self._rng = secrets.SystemRandom()
 
     def generate_labeled_record(
         self,
@@ -64,7 +66,7 @@ class BulkDataGenerator:
         if include_patterns is None:
             # Select random patterns
             available_patterns = self.gen.supported_patterns()
-            include_patterns = random.sample(
+            include_patterns = self._rng.sample(
                 available_patterns, min(num_pii_items, len(available_patterns))
             )
 
@@ -72,7 +74,7 @@ class BulkDataGenerator:
         text_parts = []
 
         # Generate context text
-        context = self.faker.paragraph(nb_sentences=random.randint(2, 4))
+        context = self.faker.paragraph(nb_sentences=self._rng.randint(2, 4))
         text_parts.append(context)
 
         # Generate PII items with metadata
@@ -90,7 +92,7 @@ class BulkDataGenerator:
                     value,  # Sometimes just the value alone
                 ]
 
-                text_with_pii = random.choice(templates)
+                text_with_pii = self._rng.choice(templates)
                 text_parts.append(text_with_pii)
 
                 # Extract category from pattern_id
@@ -146,7 +148,7 @@ class BulkDataGenerator:
 
         records = []
         for i in range(num_records):
-            num_pii = random.randint(patterns_per_record[0], patterns_per_record[1])
+            num_pii = self._rng.randint(patterns_per_record[0], patterns_per_record[1])
             record = self.generate_labeled_record(
                 include_patterns=include_patterns,
                 num_pii_items=num_pii,
@@ -321,7 +323,7 @@ class BulkDataGenerator:
 
         # Generate positive examples (with PII)
         for i in range(num_positive):
-            record = self.generate_labeled_record(num_pii_items=random.randint(1, 5))
+            record = self.generate_labeled_record(num_pii_items=self._rng.randint(1, 5))
             pairs.append(
                 {
                     "pair_id": i + 1,
@@ -337,8 +339,8 @@ class BulkDataGenerator:
         for i in range(num_negative):
             text = " ".join(
                 [
-                    self.faker.paragraph(nb_sentences=random.randint(2, 5))
-                    for _ in range(random.randint(1, 3))
+                    self.faker.paragraph(nb_sentences=self._rng.randint(2, 5))
+                    for _ in range(self._rng.randint(1, 3))
                 ]
             )
             pairs.append(
@@ -353,7 +355,7 @@ class BulkDataGenerator:
             )
 
         # Shuffle pairs
-        random.shuffle(pairs)
+        self._rng.shuffle(pairs)
 
         logger.info(
             f"✓ Generated {num_pairs} pairs ({num_positive} positive, {num_negative} negative)"

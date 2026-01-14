@@ -8,7 +8,6 @@ This module extends the fake data generator with support for:
 """
 
 import logging
-import random
 from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
@@ -71,7 +70,7 @@ class OfficeFileGenerator:
         for i in range(paragraphs):
             text = self.faker.paragraph(nb_sentences=5)
 
-            if include_pii and random.random() > 0.6:
+            if include_pii and self.gen._rng.random() > 0.6:
                 # Add a table with PII data
                 doc.add_heading(f"Section {i+1}: Contact Information", level=2)
 
@@ -225,7 +224,7 @@ class OfficeFileGenerator:
             tf = body.text_frame
             tf.text = self.faker.paragraph()
 
-            if include_pii and random.random() > 0.5:
+            if include_pii and self.gen._rng.random() > 0.5:
                 # Add PII data
                 p = tf.add_paragraph()
                 p.text = f"Contact: {self.faker.email()}"
@@ -520,13 +519,13 @@ class PDFGenerator:
             story.append(Spacer(1, 0.2 * inch))
 
             # Add paragraphs
-            for _ in range(random.randint(2, 4)):
-                paragraph = self.faker.paragraph(nb_sentences=random.randint(3, 6))
+            for _ in range(self.gen._rng.randint(2, 4)):
+                paragraph = self.faker.paragraph(nb_sentences=self.gen._rng.randint(3, 6))
                 story.append(Paragraph(paragraph, styles["Normal"]))
                 story.append(Spacer(1, 0.1 * inch))
 
             # Add PII table on some pages
-            if include_pii and random.random() > 0.4:
+            if include_pii and self.gen._rng.random() > 0.4:
                 story.append(Spacer(1, 0.2 * inch))
                 story.append(Paragraph("Contact Information", heading_style))
                 story.append(Spacer(1, 0.1 * inch))
@@ -573,12 +572,12 @@ class PDFGenerator:
                 story.append(Spacer(1, 0.3 * inch))
 
             # Add some bullet points
-            if random.random() > 0.5:
+            if self.gen._rng.random() > 0.5:
                 story.append(Spacer(1, 0.2 * inch))
                 story.append(Paragraph("Key Points:", heading_style))
                 story.append(Spacer(1, 0.1 * inch))
 
-                for _ in range(random.randint(3, 5)):
+                for _ in range(self.gen._rng.randint(3, 5)):
                     bullet = f"• {self.faker.sentence()}"
                     story.append(Paragraph(bullet, styles["Normal"]))
                     story.append(Spacer(1, 0.05 * inch))
@@ -630,7 +629,7 @@ class PDFGenerator:
         story.append(Spacer(1, 0.3 * inch))
 
         # Invoice info
-        invoice_num = f"INV-{random.randint(10000, 99999)}"
+        invoice_num = f"INV-{self.gen._rng.randint(10000, 99999)}"
         story.append(Paragraph(f"Invoice Number: {invoice_num}", styles["Normal"]))
         story.append(Paragraph(f"Date: {self.faker.date()}", styles["Normal"]))
         story.append(Spacer(1, 0.3 * inch))
@@ -650,10 +649,10 @@ class PDFGenerator:
 
         items_data = [["Item", "Quantity", "Price", "Total"]]
         total = 0.0
-        for _ in range(random.randint(3, 8)):
+        for _ in range(self.gen._rng.randint(3, 8)):
             item = self.faker.catch_phrase()
-            qty = random.randint(1, 10)
-            price = random.uniform(10, 500)
+            qty = self.gen._rng.randint(1, 10)
+            price = self.gen._rng.uniform(10, 500)
             item_total = qty * price
             total += item_total
             items_data.append([item, str(qty), f"${price:.2f}", f"${item_total:.2f}"])
