@@ -6,6 +6,10 @@
 
 **Data Detector** is a high-performance engine for detecting, redacting, and generating sensitive data (PII).
 
+## The purpose behind the development
+
+I wasn't particularly interested in protecting personal information. However, I recently became interested after trying out RAG with a local LLM. When using a personal agent, I thought it would be good to prevent someone's personal information from being leaked, so I started creating Data Detector. I hope this program can protect the data of many people.
+
 ## Installation
 
 ```bash
