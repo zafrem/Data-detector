@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/Data%20Detector.jpg" alt="Data Detector Logo" width="200">
+  <img src="images/Data%20Detector.png" alt="Data Detector Logo" width="200">
 </p>
 
 # Data Detector
