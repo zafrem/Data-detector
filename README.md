@@ -8,7 +8,7 @@
 
 ## The purpose behind the development
 
-I wasn't particularly interested in protecting personal information. However, I recently became interested after trying out RAG with a local LLM. When using a personal agent, I thought it would be good to prevent someone's personal information from being leaked, so I started creating Data Detector. I hope this program can protect the data of many people.
+"To be honest, data privacy wasn't exactly on my radar. But that changed when I started experimenting with RAG on a local LLM. I realized that using a personal AI agent could accidentally expose sensitive info. That 'aha' moment led me to build Data Detector. I really hope this tool helps keep people's data safe."
 
 ## Installation
 
